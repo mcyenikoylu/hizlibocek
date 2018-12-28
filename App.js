@@ -27,12 +27,16 @@ export default class App extends Component {
         points: 0,
 
         moveEnemyVal: new Animated.Value(0),
-
+        moveEnemyVal2: new Animated.Value(0),
         enemyStartposX: 0,
+        enemyStartposX2: 0,
 
         enemySide: 'left',
+        enemySide2: 'right',
 
         enemySpeed: 4200,
+        enemySpeed2: 4200,
+
         gameOver: false,
     };
   }
@@ -74,6 +78,11 @@ export default class App extends Component {
             moveEnemyVal={this.state.moveEnemyVal}>
   </Zombie>
 
+  <Zombie enemyImg={require('./app/img/zombie1.png')}
+            enemyStartposX={this.state.enemyStartposX2}
+            moveEnemyVal={this.state.moveEnemyVal2}>
+  </Zombie>
+
     <View style={styles.controls}>
       <Text style={styles.left} onPress={()=> this.movePlayer('left')} >{'<'}</Text>
       <Text style={styles.right} onPress={()=> this.movePlayer('right')}>{'>'}</Text>
@@ -82,6 +91,7 @@ export default class App extends Component {
   </ImageBackground>
     );
   }
+
   movePlayer(direction) {
     if(direction == 'right'){
       this.setState({playersSide:'right'});
@@ -106,11 +116,60 @@ export default class App extends Component {
 
   componentDidMount(){
     this.animateEnemy();
+    this.animateEnemy2();
+  }
+
+  animateEnemy2(){
+    this.state.moveEnemyVal2.setValue(-120);
+    var windowH = Dimensions.get('window').height; //692
+    var rx = Math.floor(Math.random() * 2) + 1;
+    if(rx == 2){ //2 gelince
+      rx = 40;
+      this.setState({enemySide2: 'left'});
+      this.setState({enemyStartposX2: rx});
+    } else { //1 gelince
+      rx = 220;
+      this.setState({enemySide2: 'right'});
+      this.setState({enemyStartposX2: rx});
+    }
+
+    var refreshIntervalId2;
+    refreshIntervalId2 = setInterval(()=>{
+          if(
+            this.state.moveEnemyVal2._value > windowH - 280
+            && this.state.playersSide == this.state.enemySide2
+            ){
+              clearInterval(refreshIntervalId2);
+              this.setState({gameOver: true});
+              this.gameOver();
+            }
+     
+    }, 50);
+
+    setInterval(()=>{
+      this.setState({enemySpeed2: this.state.enemySpeed2 - 50})
+ 
+    }, 20000);
+
+    Animated.timing(
+      this.state.moveEnemyVal2,{
+        toValue: Dimensions.get('window').height,
+        duration: this.state.enemySpeed2,
+      }
+    ).start(event => {
+      if(event.finished && this.state.gameOver == false){
+      clearInterval(refreshIntervalId2);
+      this.setState({points: ++this.state.points});
+      this.animateEnemy2();
+    } 
+    });
+
+
   }
 
   animateEnemy(){
 
-    this.state.moveEnemyVal.setValue(-100);
+    this.state.moveEnemyVal.setValue(-120);
 
     var windowH = Dimensions.get('window').height; //692
    
@@ -118,44 +177,29 @@ export default class App extends Component {
     if(r == 2){ //2 gelince
       r = 40;
       this.setState({enemySide: 'left'});
+      this.setState({enemyStartposX: r});
     } else { //1 gelince
-      //r = Dimensions.get('window').width - 220;
       r = 220;
-      this.setState({ enemySide: 'right'});
+      this.setState({enemySide: 'right'});
+      this.setState({enemyStartposX: r});
     }
-
-    this.setState({enemyStartposX: r});
 
     var refreshIntervalId;
     refreshIntervalId = setInterval(()=>{
-      if(
-        this.state.moveEnemyVal._value > windowH - 280
-        //&& this.state.moveEnemyVal._value < -180
-        && this.state.playersSide == this.state.enemySide
-        ){
-          clearInterval(refreshIntervalId);
-          this.setState({gameOver: true});
-          this.gameOver();
-
-          // alert("moveEnemyVal._value: " + this.state.moveEnemyVal._value +
-          // " windowH: " + windowH +
-          // " cenker: " + this.state.playersSide +
-          // " zombie: " + this.state.enemySide);
-
-        } else {
-         
-          //alert("moveEnemyVal._value: " + windowH);
-
-          // console.log("refreshIntervalId: " + refreshIntervalId);
-         //console.log("moveEnemyVal._value: " + this.state.moveEnemyVal._value);
-          // console.log("windowH: " + windowH);
-          // console.log("windowH: " + windowH -280);
-
-        }
+          if(
+            this.state.moveEnemyVal._value > windowH - 280
+            && this.state.playersSide == this.state.enemySide
+            ){
+              clearInterval(refreshIntervalId);
+              this.setState({gameOver: true});
+              this.gameOver();
+            }
+     
     }, 50);
 
     setInterval(()=>{
       this.setState({enemySpeed: this.state.enemySpeed - 50})
+ 
     }, 20000);
 
     Animated.timing(
